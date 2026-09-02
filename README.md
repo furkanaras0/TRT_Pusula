@@ -20,7 +20,7 @@
 ## 🔒 Kurumsal Gizlilik, Fikri Mülkiyet ve Kaynak Kodu Bildirimi (NDA Disclaimer)
 
 > [!IMPORTANT]
-> **ÖNEMLİ BİLGİLENDİRME (PORTFOLYO & MÜLAKAT DEĞERLENDİRİCİLERİ İÇİN):**
+> **ÖNEMLİ BİLGİLENDİRME:**
 >
 > 1. **Projenin Doğuşu ve Evrimi:** Bu proje, başlangıçta bağımsız bir çekirdek mimari ve kavram kanıtlama (PoC) prototipi olarak **SYSTRT** adıyla geliştirilmiştir. Çekirdek mimarinin başarısı üzerine proje; kurum içi standartlara, kurumsal güvenlik kurallarına ve **TRT Framework (v2)** altyapısına taşınarak **Pusula Ekosistemi** (`Pusula`, `Pusula.Chat` ve `Pusula.UI`) olarak production seviyesine ulaştırılmıştır.
 >
