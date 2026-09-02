@@ -77,7 +77,7 @@ Sistem; **Clean Architecture** prensiplerine sıkı sıkıya bağlı, **CQRS** i
 ```mermaid
 flowchart TB
     subgraph ClientLayer ["İstemci Katmanı (Client Layer)"]
-        UI["Pusula.UI\n(React 19 + Tailwind v4 + Chakra UI v3)"]
+        UI["Pusula.UI<br/>(React 19 + Tailwind v4 + Chakra UI v3)"]
     end
 
     subgraph GatewayLayer ["Tersine Proxy & Ağ Ağ Geçidi (Port 80)"]
@@ -90,7 +90,9 @@ flowchart TB
         P_APP["Pusula.Application (MediatR CQRS, Validators, Mapster)"]
         P_INFRA["Pusula.Infrastructure (EF Core UnitOfWork, Migrations, Seeds)"]
         P_DOM["Pusula.Domain (Entities, Enums, Specifications)"]
-        P_API --> P_APP --> P_INFRA --> P_DOM
+        P_API --> P_APP
+        P_APP --> P_INFRA
+        P_INFRA --> P_DOM
     end
 
     subgraph ChatService ["Pusula.Chat Servisi (:51772) - Realtime Microservice"]
@@ -98,7 +100,7 @@ flowchart TB
         C_API["Pusula.Chat.Api (Mesajlar, InternalBroadcast)"]
         C_HUB["SignalR Hub (/hubs/messaging)"]
         C_APP["Pusula.Chat.Application (Message Handlers)"]
-        C_OUTBOX["OutboxProcessor BackgroundService\n+ System.Threading.Channels (0ms)"]
+        C_OUTBOX["OutboxProcessor BackgroundService<br/>+ System.Threading.Channels (0ms)"]
         C_INFRA["Pusula.Chat.Infrastructure (ChatDbContext)"]
         C_API --> C_APP
         C_HUB --> C_APP
@@ -108,17 +110,17 @@ flowchart TB
     end
 
     subgraph StorageLayer ["Kalıcı Veri ve Dağıtık Önbellek Katmanı"]
-        DB_PUSULA[("PostgreSQL: pusula\nKullanıcı, Görev, Talep, Paylaşım")]
-        DB_CHAT[("PostgreSQL: chat\n(messaging.messages - Range Partitioned)")]
-        REDIS[("Redis Cache Cluster\n(User Presence & Session Tokens)")]
+        DB_PUSULA[("PostgreSQL: pusula<br/>Kullanıcı, Görev, Talep, Paylaşım")]
+        DB_CHAT[("PostgreSQL: chat<br/>(messaging.messages - Range Partitioned)")]
+        REDIS[("Redis Cache Cluster<br/>(User Presence & Session Tokens)")]
     end
 
-    UI -->|HTTP / REST| NGINX
-    UI -->|WSS (WebSockets)| NGINX
+    UI -->|"HTTP / REST"| NGINX
+    UI -->|"WSS (WebSockets)"| NGINX
 
-    NGINX -->|/api/*| P_API
-    NGINX -->|/api/Mesajlar*| C_API
-    NGINX -->|/hubs/* (Upgrade: WebSocket)| C_HUB
+    NGINX -->|"/api/*"| P_API
+    NGINX -->|"/api/Mesajlar*"| C_API
+    NGINX -->|"/hubs/* (Upgrade: WebSocket)"| C_HUB
 
     P_INFRA --> DB_PUSULA
     P_INFRA --> REDIS
@@ -251,27 +253,27 @@ Klasik Outbox desenlerinde veritabanına yazılan olaylar, bir arka plan servisi
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Alice as İstemci (Alice)
+    actor Alice as İstemci Alice
     participant API as Pusula.Chat.Api
-    participant DB as PostgreSQL (chat)
-    participant Channel as OutboxSignalChannel (Channels)
-    participant Worker as OutboxProcessor (Background)
+    participant DB as PostgreSQL (Chat DB)
+    participant Channel as OutboxSignalChannel
+    participant Worker as OutboxProcessor Worker
     participant Hub as SignalR Hub
-    actor Bob as İstemci (Bob)
+    actor Bob as İstemci Bob
 
     Alice->>API: POST /api/Mesajlar (Mesaj Gönder)
     rect rgb(240, 248, 255)
-        Note over API,DB: Veritabanı Transaction'ı
+        Note over API,DB: Veritabanı Transaction
         API->>DB: INSERT INTO messaging.messages
         API->>DB: INSERT INTO messaging.outbox_events
         API->>DB: COMMIT TRANSACTION
     end
     API->>Channel: PublishSignal() [TryWrite 1 Byte]
     API-->>Alice: 200 OK (Mesaj Oluşturuldu)
-    Channel-->>Worker: Anında Uyanma (0ms Latency)
-    Worker->>DB: Olayı Oku (SELECT ... WHERE ProcessedAt IS NULL)
+    Channel-->>Worker: Anında Uyanma (0ms Gecikme)
+    Worker->>DB: Olayı Oku (SELECT WHERE ProcessedAt IS NULL)
     Worker->>Hub: PublishToGroup(conversationId, messageDto)
-    Hub-->>Bob: ReceiveMessage(MessageDto) [Canlı Ekranına Yansır]
+    Hub-->>Bob: ReceiveMessage(MessageDto)
     Worker->>DB: UPDATE outbox_events SET ProcessedAt = NOW()
 ```
 
